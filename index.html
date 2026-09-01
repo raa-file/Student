@@ -626,6 +626,7 @@
     <div class="search">
       <input type="text" id="searchInput" placeholder="ابحثي عن طالبة...">
     </div>
+    <button class="btn btn-ghost btn-sm" id="demoBtn">بيانات تجريبية</button>
     <button class="btn btn-ghost btn-sm" id="exportAllBtn">تصدير تقرير عام PDF</button>
     <button class="btn btn-primary" id="addBtn">
       <span>+ إضافة طالبة</span>
@@ -1171,6 +1172,88 @@ document.getElementById('confirmAdd').addEventListener('click', async ()=>{
 });
 document.getElementById('inName').addEventListener('keydown', (e)=>{
   if(e.key==='Enter') document.getElementById('confirmAdd').click();
+});
+
+// ===== Demo data =====
+function dayOffset(n){
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0,10);
+}
+
+function generateDemoData(){
+  const demo = [
+    // الفصل الأول
+    { name:'سارة العتيبي', group:'الفصل الأول',
+      attendance:[[6,'present'],[4,'present'],[3,'late'],[1,'present']],
+      participation:[[6,'excellent'],[3,'good'],[1,'excellent']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:9, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:8, outof:10},{title:'واجب الوحدة الثالثة', submitted:false, score:null, outof:null}],
+      grades:[{title:'اختبار قصير 1', score:18, outof:20},{title:'اختبار منتصف الفصل', score:44, outof:50}],
+      notes:'طالبة متفاعلة وتشارك بانتظام، تحتاج فقط تنظيم وقت تسليم الواجبات.' },
+    { name:'ريم القحطاني', group:'الفصل الأول',
+      attendance:[[6,'present'],[4,'absent'],[3,'present'],[1,'present']],
+      participation:[[6,'good'],[3,'good']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:7, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:9, outof:10}],
+      grades:[{title:'اختبار قصير 1', score:15, outof:20},{title:'اختبار منتصف الفصل', score:38, outof:50}],
+      notes:'تحسّن ملحوظ في الحضور آخر أسبوعين.' },
+    { name:'نورة الدوسري', group:'الفصل الأول',
+      attendance:[[6,'present'],[4,'present'],[3,'present'],[1,'late']],
+      participation:[[6,'excellent'],[3,'excellent'],[1,'good']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:10, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:10, outof:10},{title:'واجب الوحدة الثالثة', submitted:true, score:9, outof:10}],
+      grades:[{title:'اختبار قصير 1', score:20, outof:20},{title:'اختبار منتصف الفصل', score:49, outof:50}],
+      notes:'متميزة جدًا، ممكن تكون قائدة مجموعة في المشاريع القادمة.' },
+    { name:'جود الحربي', group:'الفصل الأول',
+      attendance:[[6,'absent'],[4,'late'],[3,'present'],[1,'present']],
+      participation:[[3,'weak'],[1,'good']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:false, score:null, outof:null},{title:'واجب الوحدة الثانية', submitted:true, score:6, outof:10}],
+      grades:[{title:'اختبار قصير 1', score:11, outof:20}],
+      notes:'تحتاج متابعة إضافية، تواصلت مع ولي الأمر بخصوص الغياب المتكرر.' },
+    // الفصل الثاني
+    { name:'لمى الشهري', group:'الفصل الثاني',
+      attendance:[[5,'present'],[4,'present'],[2,'present'],[1,'present']],
+      participation:[[5,'excellent'],[2,'excellent']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:10, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:8, outof:10}],
+      grades:[{title:'اختبار قصير 1', score:19, outof:20},{title:'اختبار منتصف الفصل', score:46, outof:50}],
+      notes:'مواظبة ودقيقة في التسليم.' },
+    { name:'غلا المطيري', group:'الفصل الثاني',
+      attendance:[[5,'late'],[4,'present'],[2,'present'],[1,'absent']],
+      participation:[[5,'good'],[2,'weak']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:6, outof:10},{title:'واجب الوحدة الثانية', submitted:false, score:null, outof:null}],
+      grades:[{title:'اختبار قصير 1', score:13, outof:20}],
+      notes:'بحاجة تحفيز أكثر للمشاركة الصفية.' },
+    { name:'عبير الزهراني', group:'الفصل الثاني',
+      attendance:[[5,'present'],[4,'present'],[2,'late'],[1,'present']],
+      participation:[[5,'good'],[2,'excellent'],[1,'good']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:9, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:9, outof:10},{title:'واجب الوحدة الثالثة', submitted:true, score:10, outof:10}],
+      grades:[{title:'اختبار قصير 1', score:17, outof:20},{title:'اختبار منتصف الفصل', score:41, outof:50}],
+      notes:'مستوى ثابت وجيد طوال الفصل.' },
+    { name:'وعد الغامدي', group:'الفصل الثاني',
+      attendance:[[5,'present'],[4,'absent'],[2,'present'],[1,'present']],
+      participation:[[5,'excellent'],[1,'good']],
+      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:8, outof:10}],
+      grades:[{title:'اختبار قصير 1', score:16, outof:20}],
+      notes:'' }
+  ];
+
+  return demo.map(d => ({
+    id: uid(),
+    name: d.name,
+    group: d.group,
+    phone: '',
+    attendance: d.attendance.map(([offset,status]) => ({date: dayOffset(offset), status})),
+    participation: d.participation.map(([offset,level]) => ({date: dayOffset(offset), level})),
+    homework: d.homework,
+    grades: d.grades,
+    notes: d.notes
+  }));
+}
+
+document.getElementById('demoBtn').addEventListener('click', async ()=>{
+  if(!confirm('راح تُضاف 8 طالبات وهميات (4 في الفصل الأول و4 في الفصل الثاني) فوق القائمة الحالية. متابعة؟')) return;
+  students = [...students, ...generateDemoData()];
+  await persist();
+  showToast('تمت إضافة البيانات التجريبية');
+  render();
 });
 
 // ===== PDF export =====
