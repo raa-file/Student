@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل الطالبات</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --ink:#5a4552;
+    --paper:#fdf1f3;
+    --card:#fffbfc;
+    --line:#f3dde3;
+    --olive:#c97b95;
+    --olive-dark:#a8577a;
+    --clay:#9b7fb0;
+    --clay-soft:#ece2f2;
+    --gold:#c9a15a;
+    --muted:#a68b96;
+    --danger:#c15b6b;
+    --good:#7f9d7c;
+    --warn:#d1a15c;
+    --radius:16px;
+    --shadow: 0 2px 8px rgba(168,87,122,.08), 0 10px 26px rgba(168,87,122,.07);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(201,123,149,0.10) 1.4px, transparent 0);
+    background-size: 24px 24px;
+    color:var(--ink);
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .mono{font-family:'Space Mono', monospace; direction:ltr; display:inline-block;}
+
+  /* ===== Header ===== */
+  header{
+    padding:28px 20px 20px;
+    max-width:1050px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-size:12.5px;
+    color:var(--olive);
+    letter-spacing:.04em;
+    font-weight:600;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--olive);
+    display:inline-block;
+  }
+  h1{
+    font-family:'Aref Ruqaa', 'IBM Plex Sans Arabic', sans-serif;
+    font-size:clamp(30px,6vw,42px);
+    margin:0 0 6px;
+    font-weight:700;
+    letter-spacing:0;
+    color:var(--olive-dark);
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14.5px;
+    max-width:560px;
+    line-height:1.6;
+  }
+
+  /* ===== Stats strip ===== */
+  .stats{
+    max-width:1050px;
+    margin:18px auto 0;
+    padding:0 20px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+  }
+  .stat{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 14px 12px;
+  }
+  .stat .num{
+    font-family:'Space Mono', monospace;
+    font-size:24px;
+    font-weight:700;
+    color:var(--olive-dark);
+    line-height:1;
+  }
+  .stat .lbl{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* ===== Main layout ===== */
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:24px 20px 80px;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .search{
+    flex:1;
+    min-width:180px;
+    position:relative;
+  }
+  .search input{
+    width:100%;
+    padding:11px 14px;
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background:var(--card);
+    font-family:inherit;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .search input:focus{outline:2px solid var(--olive); outline-offset:1px;}
+
+  .btn{
+    border:none;
+    border-radius:var(--radius);
+    padding:11px 18px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--olive-dark); color:#fff8ec;}
+  .btn-primary:hover{background:var(--olive);}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--olive);}
+  .btn-sm{padding:8px 13px; font-size:13px;}
+  .btn:focus-visible{outline:2px solid var(--olive); outline-offset:2px;}
+
+  /* ===== Student cards ===== */
+  #list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .student{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+
+  .student-head{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px 18px;
+    cursor:pointer;
+  }
+  .avatar{
+    width:44px;height:44px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;
+    font-size:16px;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .head-info{flex:1; min-width:0;}
+  .head-info .name{
+    font-weight:700;
+    font-size:16px;
+    margin-bottom:2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .head-info .meta{
+    font-size:12.5px;
+    color:var(--muted);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .head-badges{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:180px;
+  }
+  .badge{
+    font-size:11.5px;
+    font-weight:600;
+    padding:4px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .badge-attend{background:#eef4ec; color:var(--good);}
+  .badge-attend.warn{background:#faf0dd; color:var(--warn);}
+  .badge-attend.danger{background:#fbe0e4; color:var(--danger);}
+  .badge-grade{background:var(--clay-soft); color:var(--clay);}
+  .badge-hw{background:#f1eaf7; color:#7d5f96;}
+
+  .icon-btn{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    width:34px;height:34px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .icon-btn:hover{background:var(--clay-soft); color:var(--clay);}
+
+  .chevron{
+    color:var(--muted);
+    transition:transform .2s ease;
+    flex-shrink:0;
+  }
+  .student.open .chevron{transform:rotate(180deg);}
+
+  .student-body{
+    display:none;
+    padding:0 18px 18px;
+    border-top:1px solid var(--line);
+  }
+  .student.open .student-body{display:block;}
+
+  .tabs{
+    display:flex;
+    gap:2px;
+    margin:14px 0;
+    border-bottom:1px solid var(--line);
+    overflow-x:auto;
+  }
+  .tab{
+    padding:8px 12px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+    white-space:nowrap;
+  }
+  .tab.active{color:var(--olive-dark); border-bottom-color:var(--olive-dark);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* attendance / participation shared */
+  .attend-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .attend-row input[type=date]{
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-family:inherit;
+    font-size:13.5px;
+    background:#fff;
+  }
+  .seg{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .seg button{
+    border:none;
+    background:#fff;
+    padding:8px 14px;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--muted);
+    border-left:1px solid var(--line);
+  }
+  .seg button:first-child{border-left:none;}
+  .seg button.sel-present{background:#eef4ec; color:var(--good);}
+  .seg button.sel-late{background:#faf0dd; color:var(--warn);}
+  .seg button.sel-absent{background:#fbe0e4; color:var(--danger);}
+  .seg button.sel-excellent{background:#eef4ec; color:var(--good);}
+  .seg button.sel-good{background:#faf0dd; color:var(--warn);}
+  .seg button.sel-weak{background:#fbe0e4; color:var(--danger);}
+
+  .log-list{display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;}
+  .log-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 12px;
+    background:#fdf2f4;
+    border-radius:8px;
+    font-size:13px;
+    gap:8px;
+  }
+  .log-item .date{color:var(--muted); font-family:'Space Mono',monospace; direction:ltr;}
+  .log-item .status-dot{display:inline-flex; align-items:center; gap:6px; font-weight:600;}
+  .dot{width:7px;height:7px;border-radius:50%; flex-shrink:0;}
+  .dot.present, .dot.excellent{background:var(--good);}
+  .dot.late, .dot.good{background:var(--warn);}
+  .dot.absent, .dot.weak{background:var(--danger);}
+  .log-item button{
+    border:none; background:none; color:var(--muted); cursor:pointer; font-size:12px;
+  }
+  .log-item button:hover{color:var(--danger);}
+
+  /* grades & homework */
+  .grade-form{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .grade-form input{
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-family:inherit;
+    font-size:13.5px;
+  }
+  .grade-form input[name=title]{flex:2; min-width:120px;}
+  .grade-form input[name=score]{width:70px;}
+  .grade-form input[name=outof]{width:70px;}
+
+  .grade-list, .hw-list{display:flex; flex-direction:column; gap:6px;}
+  .grade-item, .hw-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 12px;
+    background:#fdf2f4;
+    border-radius:8px;
+    font-size:13.5px;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .grade-item .gtitle, .hw-item .gtitle{font-weight:600;}
+  .grade-item .gscore, .hw-item .gscore{
+    font-family:'Space Mono',monospace;
+    direction:ltr;
+    color:var(--clay);
+    font-weight:700;
+  }
+  .grade-item button, .hw-item button{border:none; background:none; color:var(--muted); cursor:pointer; font-size:12px;}
+  .grade-item button:hover, .hw-item button:hover{color:var(--danger);}
+
+  .hw-left{display:flex; align-items:center; gap:10px; flex:1; min-width:0;}
+  .hw-toggle{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:20px;
+    padding:4px 12px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .hw-toggle.on{background:#eef4ec; color:var(--good); border-color:#d9e6d4;}
+  .hw-toggle.off{background:#fbe0e4; color:var(--danger); border-color:#f6c9d3;}
+
+  /* notes */
+  .notes-area{
+    width:100%;
+    min-height:110px;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-family:inherit;
+    font-size:14px;
+    resize:vertical;
+    background:#fdf2f4;
+    line-height:1.7;
+  }
+  .notes-area:focus{outline:2px solid var(--olive); outline-offset:1px;}
+  .save-hint{font-size:12px; color:var(--muted); margin-top:6px; min-height:16px;}
+
+  .danger-zone{
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .del-student{
+    color:var(--danger);
+    background:none;
+    border:none;
+    font-size:12.5px;
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  /* empty state */
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+  }
+  .empty .big{font-size:38px; margin-bottom:10px;}
+  .empty p{font-size:14px; max-width:280px; margin:6px auto 0;}
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(43,36,32,.4);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .overlay.show{display:flex;}
+  @media (min-width:600px){
+    .overlay{align-items:center;}
+  }
+  .modal{
+    background:var(--card);
+    width:100%;
+    max-width:440px;
+    max-height:90vh;
+    overflow-y:auto;
+    border-radius:22px 22px 0 0;
+    padding:22px 20px 24px;
+    box-shadow:0 -8px 30px rgba(0,0,0,.15);
+  }
+  @media (min-width:600px){
+    .modal{border-radius:22px; margin-bottom:40px;}
+  }
+  .modal h3{margin:0 0 4px; font-size:18px;}
+  .modal .modal-sub{font-size:13px; color:var(--muted); margin-bottom:10px;}
+  .modal label{
+    display:block;
+    font-size:12.5px;
+    color:var(--muted);
+    font-weight:600;
+    margin:12px 0 5px;
+  }
+  .modal input{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-family:inherit;
+    font-size:14.5px;
+  }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+  }
+  .modal-actions .btn{flex:1; justify-content:center;}
+
+  .radio-card{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .radio-card.sel{border-color:var(--olive); background:#f2f5ee;}
+  .radio-card input{width:auto; margin-top:3px;}
+  .radio-card .rc-title{font-weight:700; font-size:14px;}
+  .radio-card .rc-sub{font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.5;}
+
+  .toast{
+    position:fixed;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--olive-dark);
+    color:#fff8ec;
+    padding:10px 20px;
+    border-radius:30px;
+    font-size:13.5px;
+    font-weight:600;
+    opacity:0;
+    transition:opacity .25s ease, transform .25s ease;
+    pointer-events:none;
+    z-index:60;
+    box-shadow:var(--shadow);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .loading{
+    text-align:center;
+    padding:40px;
+    color:var(--muted);
+    font-size:14px;
+  }
+
+  /* ===== Printable report ===== */
+  #printArea{ display:none; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printArea{
+      display:block !important;
+      position:absolute; top:0; left:0; width:100%;
+      background:#fff;
+      padding:0;
+    }
+    body{background:#fff;}
+  }
+
+  .rpt-page{
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    color:#5a4552;
+    padding:10mm 8mm;
+    direction:rtl;
+  }
+  .rpt-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom:2px solid #a8577a;
+    padding-bottom:12px;
+    margin-bottom:18px;
+  }
+  .rpt-head h1{font-size:22px; margin:0 0 4px; color:#a8577a;}
+  .rpt-head .rpt-meta{font-size:12px; color:#a68b96;}
+  .rpt-head .rpt-date{font-size:11px; color:#a68b96; text-align:left;}
+  .rpt-section{margin-bottom:20px;}
+  .rpt-section h2{
+    font-size:14px;
+    color:#a8577a;
+    border-bottom:1px solid #f3dde3;
+    padding-bottom:6px;
+    margin-bottom:10px;
+  }
+  .rpt-stats{display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+  .rpt-stat{
+    border:1px solid #f3dde3;
+    border-radius:8px;
+    padding:10px 16px;
+    text-align:center;
+    flex:1;
+    min-width:100px;
+  }
+  .rpt-stat .n{font-size:20px; font-weight:700; color:#a8577a;}
+  .rpt-stat .l{font-size:11px; color:#a68b96; margin-top:2px;}
+  table.rpt-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.rpt-table th, table.rpt-table td{
+    border:1px solid #f3dde3;
+    padding:7px 10px;
+    text-align:right;
+  }
+  table.rpt-table th{background:#f7e8ec; color:#a8577a;}
+  .rpt-notes{
+    border:1px solid #f3dde3;
+    border-radius:8px;
+    padding:12px;
+    font-size:13px;
+    line-height:1.8;
+    background:#fdf2f4;
+  }
+  .rpt-empty{color:#a68b96; font-size:12.5px;}
+  .rpt-footer{
+    margin-top:26px;
+    padding-top:10px;
+    border-top:1px solid #f3dde3;
+    font-size:10.5px;
+    color:#a68b96;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">سجل متابعة</div>
+  <h1>الطالبات</h1>
+  <div class="sub">تابعي الحضور، المشاركة، الواجبات، الدرجات والملاحظات لكل طالبة في مكان واحد. البيانات محفوظة تلقائيًا.</div>
+</header>
+
+<div class="stats" id="stats">
+  <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">إجمالي الطالبات</div></div>
+  <div class="stat"><div class="num" id="statAttend">—</div><div class="lbl">متوسط الحضور</div></div>
+  <div class="stat"><div class="num" id="statGrade">—</div><div class="lbl">متوسط الدرجات</div></div>
+  <div class="stat"><div class="num" id="statToday">0</div><div class="lbl">حضور اليوم</div></div>
+</div>
+
+<main>
+  <div class="toolbar">
+    <div class="search">
+      <input type="text" id="searchInput" placeholder="ابحثي عن طالبة...">
+    </div>
+    <button class="btn btn-ghost btn-sm" id="exportAllBtn">تصدير تقرير عام PDF</button>
+    <button class="btn btn-primary" id="addBtn">
+      <span>+ إضافة طالبة</span>
+    </button>
+  </div>
+
+  <div id="list">
+    <div class="loading">جارِ التحميل...</div>
+  </div>
+</main>
+
+<!-- Add student modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>طالبة جديدة</h3>
+    <label for="inName">الاسم</label>
+    <input type="text" id="inName" placeholder="اسم الطالبة">
+    <label for="inGroup">المجموعة / الدفعة (اختياري)</label>
+    <input type="text" id="inGroup" placeholder="مثال: دفعة يناير">
+    <label for="inPhone">رقم التواصل (اختياري)</label>
+    <input type="text" id="inPhone" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelAdd">إلغاء</button>
+      <button class="btn btn-primary" id="confirmAdd">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF export modal -->
+<div class="overlay" id="pdfOverlay">
+  <div class="modal">
+    <h3>تصدير التقرير</h3>
+    <div class="modal-sub" id="pdfModalSub">اختاري نوع التقرير قبل الطباعة أو الحفظ كـ PDF</div>
+
+    <div class="radio-card sel" data-mode="full" id="rcFull">
+      <input type="radio" name="rptMode" checked>
+      <div>
+        <div class="rc-title">تقرير كامل (داخلي)</div>
+        <div class="rc-sub">يشمل الحضور، المشاركة، الواجبات، الدرجات، والملاحظات الخاصة</div>
+      </div>
+    </div>
+    <div class="radio-card" data-mode="parent" id="rcParent">
+      <input type="radio" name="rptMode">
+      <div>
+        <div class="rc-title">تقرير مختصر لولي الأمر</div>
+        <div class="rc-sub">يشمل الحضور، المشاركة، الواجبات والدرجات فقط — بدون ملاحظاتك الخاصة</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelPdf">إلغاء</button>
+      <button class="btn btn-primary" id="confirmPdf">معاينة وطباعة</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- hidden printable content -->
+<div id="printArea"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = 'https://yifbtadrzvqxmxxttkkh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZmJ0YWRyenZxeG14eHR0a2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODc0MjksImV4cCI6MjEwMzM2MzQyOX0.1fukqIxX4Cu45OPaXW-pQzWagsro5bDiF5iK9yKYjNM';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STORAGE_KEY = 'students-list';
+
+const AVATAR_COLORS = ['#c97b95','#9b7fb0','#c9a15a','#8a7ca8','#d19bb0','#b98a6f'];
+
+let students = []; // {id, name, group, phone, attendance:[], participation:[], homework:[], grades:[], notes}
+let openId = null;
+let pdfTargetId = null; // null => full class export
+
+function uid(){ return 's_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+function initials(name){
+  const parts = name.trim().split(/\s+/);
+  return parts[0] ? parts[0][0] : '؟';
+}
+function colorFor(id){
+  let h = 0;
+  for (const c of id) h = (h*31 + c.charCodeAt(0)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[h];
+}
+
+function migrate(s){
+  if(!s.participation) s.participation = [];
+  if(!s.homework) s.homework = [];
+  if(!s.attendance) s.attendance = [];
+  if(!s.grades) s.grades = [];
+  if(typeof s.notes !== 'string') s.notes = '';
+  return s;
+}
+
+async function loadStudents(){
+  try{
+    const { data, error } = await sb
+      .from('app_storage')
+      .select('value')
+      .eq('key', STORAGE_KEY)
+      .maybeSingle();
+    if(error) throw error;
+    students = (data && data.value) ? data.value : [];
+    students = students.map(migrate);
+  }catch(e){
+    console.error(e);
+    students = [];
+    showToast('تعذر تحميل البيانات، تأكدي من الاتصال');
+  }
+  render();
+}
+
+async function persist(){
+  try{
+    const { error } = await sb
+      .from('app_storage')
+      .upsert({ key: STORAGE_KEY, value: students, updated_at: new Date().toISOString() });
+    if(error) throw error;
+  }catch(e){
+    console.error(e);
+    showToast('تعذر الحفظ، تأكدي من الاتصال وحاولي مرة أخرى');
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+function avgAttendance(s){
+  if(!s.attendance.length) return null;
+  const weight = {present:1, late:0.5, absent:0};
+  const sum = s.attendance.reduce((a,r)=> a + (weight[r.status]??0), 0);
+  return Math.round((sum / s.attendance.length) * 100);
+}
+function avgGrade(s){
+  if(!s.grades.length) return null;
+  let got=0, out=0;
+  s.grades.forEach(g=>{ got+=Number(g.score)||0; out+=Number(g.outof)||0; });
+  if(out===0) return null;
+  return Math.round((got/out)*100);
+}
+function participationSummary(s){
+  if(!s.participation.length) return null;
+  const weight = {excellent:1, good:0.6, weak:0.2};
+  const sum = s.participation.reduce((a,r)=> a + (weight[r.level]??0), 0);
+  return Math.round((sum / s.participation.length) * 100);
+}
+function homeworkStats(s){
+  if(!s.homework.length) return null;
+  const submitted = s.homework.filter(h=>h.submitted).length;
+  return {submitted, total: s.homework.length};
+}
+
+function renderStats(){
+  document.getElementById('statTotal').textContent = students.length;
+  const attends = students.map(avgAttendance).filter(v=>v!==null);
+  document.getElementById('statAttend').textContent = attends.length ? Math.round(attends.reduce((a,b)=>a+b,0)/attends.length)+'%' : '—';
+  const grades = students.map(avgGrade).filter(v=>v!==null);
+  document.getElementById('statGrade').textContent = grades.length ? Math.round(grades.reduce((a,b)=>a+b,0)/grades.length)+'%' : '—';
+  const today = new Date().toISOString().slice(0,10);
+  const todayCount = students.filter(s => s.attendance.some(a=>a.date===today && a.status==='present')).length;
+  document.getElementById('statToday').textContent = todayCount;
+}
+
+function attendBadgeClass(pct){
+  if(pct===null) return '';
+  if(pct>=80) return '';
+  if(pct>=60) return 'warn';
+  return 'danger';
+}
+
+function render(){
+  renderStats();
+  const list = document.getElementById('list');
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const filtered = students.filter(s => s.name.toLowerCase().includes(q) || (s.group||'').toLowerCase().includes(q));
+
+  if(!filtered.length){
+    list.innerHTML = `<div class="empty">
+      <div class="big">📋</div>
+      <div style="font-weight:700; font-size:15px;">${students.length ? 'ما فيه نتائج' : 'ما فيه طالبات بعد'}</div>
+      <p>${students.length ? 'جربي كلمة بحث ثانية' : 'ابدئي بإضافة أول طالبة بالزر أعلاه'}</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(s => {
+    const isOpen = s.id === openId;
+    const ap = avgAttendance(s);
+    const gp = avgGrade(s);
+    const hw = homeworkStats(s);
+    return `
+    <div class="student ${isOpen?'open':''}" data-id="${s.id}">
+      <div class="student-head" data-toggle="${s.id}">
+        <div class="avatar" style="background:${colorFor(s.id)}">${initials(s.name)}</div>
+        <div class="head-info">
+          <div class="name">${escapeHtml(s.name)}</div>
+          <div class="meta">
+            ${s.group ? `<span>${escapeHtml(s.group)}</span>` : ''}
+            <span>${s.attendance.length} جلسة</span>
+          </div>
+        </div>
+        <div class="head-badges">
+          ${ap!==null ? `<span class="badge badge-attend ${attendBadgeClass(ap)}">${ap}% حضور</span>` : ''}
+          ${gp!==null ? `<span class="badge badge-grade">${gp}% درجات</span>` : ''}
+          ${hw ? `<span class="badge badge-hw">${hw.submitted}/${hw.total} واجبات</span>` : ''}
+        </div>
+        <button class="icon-btn" title="تصدير PDF" data-pdf="${s.id}">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 9V4a1 1 0 011-1h7l4 4v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 13h12v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 17h1M14 17h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      ${isOpen ? renderBody(s) : ''}
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id = el.getAttribute('data-toggle');
+      openId = (openId === id) ? null : id;
+      render();
+    });
+  });
+
+  list.querySelectorAll('[data-pdf]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openPdfModal(el.getAttribute('data-pdf'));
+    });
+  });
+
+  if(openId) bindBodyEvents(openId);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let activeTab = 'attend';
+
+function renderBody(s){
+  const hw = homeworkStats(s);
+  const pp = participationSummary(s);
+  return `
+  <div class="student-body">
+    <div class="tabs">
+      <div class="tab ${activeTab==='attend'?'active':''}" data-tab="attend">الحضور</div>
+      <div class="tab ${activeTab==='participation'?'active':''}" data-tab="participation">المشاركة</div>
+      <div class="tab ${activeTab==='homework'?'active':''}" data-tab="homework">الواجبات</div>
+      <div class="tab ${activeTab==='grades'?'active':''}" data-tab="grades">الدرجات</div>
+      <div class="tab ${activeTab==='notes'?'active':''}" data-tab="notes">ملاحظات</div>
+    </div>
+
+    <div class="panel ${activeTab==='attend'?'active':''}" data-panel="attend">
+      <div class="attend-row">
+        <input type="date" id="attendDate" value="${new Date().toISOString().slice(0,10)}">
+        <div class="seg" id="attendSeg">
+          <button data-status="present">حاضرة</button>
+          <button data-status="late">متأخرة</button>
+          <button data-status="absent">غائبة</button>
+        </div>
+      </div>
+      <div class="log-list">
+        ${s.attendance.length ? [...s.attendance].sort((a,b)=>b.date.localeCompare(a.date)).map(a => `
+          <div class="log-item" data-date="${a.date}">
+            <span class="date">${a.date}</span>
+            <span class="status-dot"><span class="dot ${a.status}"></span>${statusLabel(a.status)}</span>
+            <button data-del-attend="${a.date}">حذف</button>
+          </div>
+        `).join('') : `<div class="rpt-empty" style="padding:8px 0;">لا يوجد سجل حضور بعد</div>`}
+      </div>
+    </div>
+
+    <div class="panel ${activeTab==='participation'?'active':''}" data-panel="participation">
+      <div class="attend-row">
+        <input type="date" id="partDate" value="${new Date().toISOString().slice(0,10)}">
+        <div class="seg" id="partSeg">
+          <button data-level="excellent">ممتازة</button>
+          <button data-level="good">جيدة</button>
+          <button data-level="weak">ضعيفة</button>
+        </div>
+      </div>
+      ${pp!==null ? `<div style="font-size:12.5px; color:var(--muted); margin-bottom:10px;">مستوى المشاركة العام: <strong style="color:var(--olive-dark)">${pp}%</strong></div>` : ''}
+      <div class="log-list">
+        ${s.participation.length ? [...s.participation].sort((a,b)=>b.date.localeCompare(a.date)).map(p => `
+          <div class="log-item" data-date="${p.date}">
+            <span class="date">${p.date}</span>
+            <span class="status-dot"><span class="dot ${p.level}"></span>${levelLabel(p.level)}</span>
+            <button data-del-part="${p.date}">حذف</button>
+          </div>
+        `).join('') : `<div class="rpt-empty" style="padding:8px 0;">لا يوجد سجل مشاركة بعد</div>`}
+      </div>
+    </div>
+
+    <div class="panel ${activeTab==='homework'?'active':''}" data-panel="homework">
+      <div class="grade-form">
+        <input type="text" name="hwtitle" placeholder="اسم الواجب">
+        <input type="number" name="hwscore" placeholder="الدرجة (اختياري)">
+        <input type="number" name="hwoutof" placeholder="من (اختياري)">
+        <button class="btn btn-primary btn-sm" id="addHomework">إضافة</button>
+      </div>
+      ${hw ? `<div style="font-size:12.5px; color:var(--muted); margin-bottom:10px;">تم تسليم <strong style="color:var(--olive-dark)">${hw.submitted}</strong> من أصل <strong>${hw.total}</strong> واجب</div>` : ''}
+      <div class="hw-list">
+        ${s.homework.length ? s.homework.map((h,i) => `
+          <div class="hw-item">
+            <div class="hw-left">
+              <button class="hw-toggle ${h.submitted?'on':'off'}" data-toggle-hw="${i}">${h.submitted ? '✓ تم التسليم' : '✕ لم يُسلّم'}</button>
+              <span class="gtitle">${escapeHtml(h.title)}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${(h.score!==null && h.score!==undefined && h.outof) ? `<span class="gscore">${h.score}/${h.outof}</span>` : ''}
+              <button data-del-hw="${i}">حذف</button>
+            </div>
+          </div>
+        `).join('') : `<div class="rpt-empty" style="padding:8px 0;">لا توجد واجبات مسجّلة بعد</div>`}
+      </div>
+    </div>
+
+    <div class="panel ${activeTab==='grades'?'active':''}" data-panel="grades">
+      <div class="grade-form">
+        <input type="text" name="title" placeholder="اسم التقييم (مثال: اختبار 1)">
+        <input type="number" name="score" placeholder="الدرجة">
+        <input type="number" name="outof" placeholder="من">
+        <button class="btn btn-primary btn-sm" id="addGrade">إضافة</button>
+      </div>
+      <div class="grade-list">
+        ${s.grades.length ? s.grades.map((g,i) => `
+          <div class="grade-item">
+            <span class="gtitle">${escapeHtml(g.title)}</span>
+            <span class="gscore">${g.score}/${g.outof}</span>
+            <button data-del-grade="${i}">حذف</button>
+          </div>
+        `).join('') : `<div class="rpt-empty" style="padding:8px 0;">لا توجد درجات مسجّلة بعد</div>`}
+      </div>
+    </div>
+
+    <div class="panel ${activeTab==='notes'?'active':''}" data-panel="notes">
+      <textarea class="notes-area" id="notesArea" placeholder="اكتبي ملاحظاتك عن الطالبة هنا...">${escapeHtml(s.notes||'')}</textarea>
+      <div class="save-hint" id="notesSaveHint"></div>
+    </div>
+
+    <div class="danger-zone">
+      <button class="btn btn-ghost btn-sm" data-pdf-inline="${s.id}">تصدير تقرير PDF</button>
+      <button class="del-student" id="delStudent">حذف الطالبة نهائيًا</button>
+    </div>
+  </div>`;
+}
+
+function statusLabel(status){
+  return {present:'حاضرة', late:'متأخرة', absent:'غائبة'}[status] || status;
+}
+function levelLabel(level){
+  return {excellent:'ممتازة', good:'جيدة', weak:'ضعيفة'}[level] || level;
+}
+
+function bindBodyEvents(id){
+  const s = students.find(x=>x.id===id);
+  if(!s) return;
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      activeTab = t.getAttribute('data-tab');
+      render();
+    });
+  });
+
+  const inlinePdf = document.querySelector('[data-pdf-inline]');
+  if(inlinePdf){
+    inlinePdf.addEventListener('click', ()=> openPdfModal(id));
+  }
+
+  // attendance
+  const seg = document.getElementById('attendSeg');
+  if(seg){
+    seg.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const date = document.getElementById('attendDate').value;
+        if(!date){ showToast('اختاري تاريخ أولاً'); return; }
+        const status = btn.getAttribute('data-status');
+        s.attendance = s.attendance.filter(a=>a.date!==date);
+        s.attendance.push({date, status});
+        await persist();
+        showToast('تم تسجيل الحضور');
+        render();
+      });
+    });
+  }
+  document.querySelectorAll('[data-del-attend]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const date = btn.getAttribute('data-del-attend');
+      s.attendance = s.attendance.filter(a=>a.date!==date);
+      await persist();
+      render();
+    });
+  });
+
+  // participation
+  const partSeg = document.getElementById('partSeg');
+  if(partSeg){
+    partSeg.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const date = document.getElementById('partDate').value;
+        if(!date){ showToast('اختاري تاريخ أولاً'); return; }
+        const level = btn.getAttribute('data-level');
+        s.participation = s.participation.filter(p=>p.date!==date);
+        s.participation.push({date, level});
+        await persist();
+        showToast('تم تسجيل المشاركة');
+        render();
+      });
+    });
+  }
+  document.querySelectorAll('[data-del-part]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const date = btn.getAttribute('data-del-part');
+      s.participation = s.participation.filter(p=>p.date!==date);
+      await persist();
+      render();
+    });
+  });
+
+  // homework
+  const addHwBtn = document.getElementById('addHomework');
+  if(addHwBtn){
+    addHwBtn.addEventListener('click', async ()=>{
+      const form = addHwBtn.closest('.panel').querySelector('.grade-form');
+      const title = form.querySelector('[name=hwtitle]').value.trim();
+      const scoreRaw = form.querySelector('[name=hwscore]').value;
+      const outofRaw = form.querySelector('[name=hwoutof]').value;
+      if(!title){ showToast('اكتبي اسم الواجب'); return; }
+      s.homework.push({
+        title,
+        submitted: false,
+        score: scoreRaw==='' ? null : Number(scoreRaw),
+        outof: outofRaw==='' ? null : Number(outofRaw)
+      });
+      await persist();
+      showToast('تمت إضافة الواجب');
+      render();
+    });
+  }
+  document.querySelectorAll('[data-toggle-hw]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.getAttribute('data-toggle-hw'));
+      s.homework[idx].submitted = !s.homework[idx].submitted;
+      await persist();
+      render();
+    });
+  });
+  document.querySelectorAll('[data-del-hw]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.getAttribute('data-del-hw'));
+      s.homework.splice(idx,1);
+      await persist();
+      render();
+    });
+  });
+
+  // grades
+  const addGradeBtn = document.getElementById('addGrade');
+  if(addGradeBtn){
+    addGradeBtn.addEventListener('click', async ()=>{
+      const form = addGradeBtn.closest('.panel').querySelector('.grade-form');
+      const title = form.querySelector('[name=title]').value.trim();
+      const score = form.querySelector('[name=score]').value;
+      const outof = form.querySelector('[name=outof]').value;
+      if(!title || score==='' || outof===''){ showToast('عبّي كل الحقول'); return; }
+      s.grades.push({title, score:Number(score), outof:Number(outof)});
+      await persist();
+      showToast('تمت إضافة الدرجة');
+      render();
+    });
+  }
+  document.querySelectorAll('[data-del-grade]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.getAttribute('data-del-grade'));
+      s.grades.splice(idx,1);
+      await persist();
+      render();
+    });
+  });
+
+  // notes (debounced save)
+  const notesArea = document.getElementById('notesArea');
+  if(notesArea){
+    notesArea.addEventListener('input', ()=>{
+      clearTimeout(bindBodyEvents._tm);
+      const hint = document.getElementById('notesSaveHint');
+      hint.textContent = 'جارِ الحفظ...';
+      bindBodyEvents._tm = setTimeout(async ()=>{
+        s.notes = notesArea.value;
+        await persist();
+        hint.textContent = 'تم الحفظ ✓';
+        setTimeout(()=>{ if(hint) hint.textContent=''; }, 1500);
+      }, 600);
+    });
+  }
+
+  // delete student
+  const delBtn = document.getElementById('delStudent');
+  if(delBtn){
+    delBtn.addEventListener('click', async ()=>{
+      if(!confirm(`حذف "${s.name}" نهائيًا؟`)) return;
+      students = students.filter(x=>x.id!==id);
+      openId = null;
+      await persist();
+      showToast('تم حذف الطالبة');
+      render();
+    });
+  }
+}
+
+// search
+document.getElementById('searchInput').addEventListener('input', render);
+
+// add modal
+const overlay = document.getElementById('overlay');
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  document.getElementById('inName').value='';
+  document.getElementById('inGroup').value='';
+  document.getElementById('inPhone').value='';
+  overlay.classList.add('show');
+  setTimeout(()=>document.getElementById('inName').focus(), 50);
+});
+document.getElementById('cancelAdd').addEventListener('click', ()=> overlay.classList.remove('show'));
+overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('show'); });
+
+document.getElementById('confirmAdd').addEventListener('click', async ()=>{
+  const name = document.getElementById('inName').value.trim();
+  if(!name){ showToast('اكتبي اسم الطالبة'); return; }
+  const group = document.getElementById('inGroup').value.trim();
+  const phone = document.getElementById('inPhone').value.trim();
+  students.push({ id: uid(), name, group, phone, attendance: [], participation: [], homework: [], grades: [], notes: '' });
+  await persist();
+  overlay.classList.remove('show');
+  showToast('تمت إضافة الطالبة');
+  render();
+});
+document.getElementById('inName').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter') document.getElementById('confirmAdd').click();
+});
+
+// ===== PDF export =====
+const pdfOverlay = document.getElementById('pdfOverlay');
+const rcFull = document.getElementById('rcFull');
+const rcParent = document.getElementById('rcParent');
+let selectedMode = 'full';
+
+function setMode(mode){
+  selectedMode = mode;
+  rcFull.classList.toggle('sel', mode==='full');
+  rcParent.classList.toggle('sel', mode==='parent');
+  rcFull.querySelector('input').checked = mode==='full';
+  rcParent.querySelector('input').checked = mode==='parent';
+}
+rcFull.addEventListener('click', ()=> setMode('full'));
+rcParent.addEventListener('click', ()=> setMode('parent'));
+
+function openPdfModal(studentId){
+  pdfTargetId = studentId; // null for whole-class report
+  const sub = document.getElementById('pdfModalSub');
+  if(studentId){
+    const s = students.find(x=>x.id===studentId);
+    sub.textContent = `تقرير خاص بـ "${s ? s.name : ''}"`;
+  }else{
+    sub.textContent = 'تقرير عام لجميع الطالبات';
+  }
+  setMode('full');
+  pdfOverlay.classList.add('show');
+}
+document.getElementById('exportAllBtn').addEventListener('click', ()=> openPdfModal(null));
+document.getElementById('cancelPdf').addEventListener('click', ()=> pdfOverlay.classList.remove('show'));
+pdfOverlay.addEventListener('click', (e)=>{ if(e.target===pdfOverlay) pdfOverlay.classList.remove('show'); });
+
+document.getElementById('confirmPdf').addEventListener('click', ()=>{
+  const html = pdfTargetId ? buildStudentReport(pdfTargetId, selectedMode) : buildClassReport(selectedMode);
+  document.getElementById('printArea').innerHTML = html;
+  pdfOverlay.classList.remove('show');
+  setTimeout(()=> window.print(), 150);
+});
+
+function todayStr(){
+  return new Date().toLocaleDateString('ar-SA', {year:'numeric', month:'long', day:'numeric'});
+}
+
+function buildStudentReport(studentId, mode){
+  const s = students.find(x=>x.id===studentId);
+  if(!s) return '';
+  const ap = avgAttendance(s);
+  const gp = avgGrade(s);
+  const pp = participationSummary(s);
+  const hw = homeworkStats(s);
+  const parentMode = mode === 'parent';
+
+  const attendRows = [...s.attendance].sort((a,b)=>b.date.localeCompare(a.date)).map(a=>
+    `<tr><td>${a.date}</td><td>${statusLabel(a.status)}</td></tr>`).join('');
+
+  const partRows = [...s.participation].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>
+    `<tr><td>${p.date}</td><td>${levelLabel(p.level)}</td></tr>`).join('');
+
+  const hwRows = s.homework.map(h=>
+    `<tr><td>${escapeHtml(h.title)}</td><td>${h.submitted?'تم التسليم':'لم يُسلّم'}</td><td>${(h.score!==null && h.score!==undefined && h.outof)?`${h.score}/${h.outof}`:'—'}</td></tr>`).join('');
+
+  const gradeRows = s.grades.map(g=>
+    `<tr><td>${escapeHtml(g.title)}</td><td>${g.score}/${g.outof}</td></tr>`).join('');
+
+  return `
+  <div class="rpt-page">
+    <div class="rpt-head">
+      <div>
+        <h1>${parentMode ? 'تقرير أداء الطالبة' : 'تقرير متابعة الطالبة'}</h1>
+        <div class="rpt-meta">${escapeHtml(s.name)}${s.group ? ' — ' + escapeHtml(s.group) : ''}</div>
+      </div>
+      <div class="rpt-date">تاريخ التقرير<br>${todayStr()}</div>
+    </div>
+
+    <div class="rpt-stats">
+      <div class="rpt-stat"><div class="n">${ap!==null?ap+'%':'—'}</div><div class="l">نسبة الحضور</div></div>
+      <div class="rpt-stat"><div class="n">${pp!==null?pp+'%':'—'}</div><div class="l">مستوى المشاركة</div></div>
+      <div class="rpt-stat"><div class="n">${hw?hw.submitted+'/'+hw.total:'—'}</div><div class="l">الواجبات المسلّمة</div></div>
+      <div class="rpt-stat"><div class="n">${gp!==null?gp+'%':'—'}</div><div class="l">متوسط الدرجات</div></div>
+    </div>
+
+    <div class="rpt-section">
+      <h2>سجل الحضور</h2>
+      ${attendRows ? `<table class="rpt-table"><tr><th>التاريخ</th><th>الحالة</th></tr>${attendRows}</table>` : '<div class="rpt-empty">لا يوجد سجل حضور</div>'}
+    </div>
+
+    <div class="rpt-section">
+      <h2>سجل المشاركة</h2>
+      ${partRows ? `<table class="rpt-table"><tr><th>التاريخ</th><th>المستوى</th></tr>${partRows}</table>` : '<div class="rpt-empty">لا يوجد سجل مشاركة</div>'}
+    </div>
+
+    <div class="rpt-section">
+      <h2>الواجبات</h2>
+      ${hwRows ? `<table class="rpt-table"><tr><th>الواجب</th><th>الحالة</th><th>الدرجة</th></tr>${hwRows}</table>` : '<div class="rpt-empty">لا توجد واجبات مسجّلة</div>'}
+    </div>
+
+    <div class="rpt-section">
+      <h2>الدرجات</h2>
+      ${gradeRows ? `<table class="rpt-table"><tr><th>التقييم</th><th>الدرجة</th></tr>${gradeRows}</table>` : '<div class="rpt-empty">لا توجد درجات مسجّلة</div>'}
+    </div>
+
+    ${(!parentMode) ? `
+    <div class="rpt-section">
+      <h2>ملاحظات</h2>
+      ${s.notes ? `<div class="rpt-notes">${escapeHtml(s.notes).replace(/\n/g,'<br>')}</div>` : '<div class="rpt-empty">لا توجد ملاحظات</div>'}
+    </div>` : ''}
+
+    <div class="rpt-footer">تقرير تم إنشاؤه تلقائيًا${parentMode ? ' — نسخة لولي الأمر' : ''}</div>
+  </div>`;
+}
+
+function buildClassReport(mode){
+  const rows = students.map(s=>{
+    const ap = avgAttendance(s);
+    const gp = avgGrade(s);
+    const pp = participationSummary(s);
+    const hw = homeworkStats(s);
+    return `<tr>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${s.group?escapeHtml(s.group):'—'}</td>
+      <td>${ap!==null?ap+'%':'—'}</td>
+      <td>${pp!==null?pp+'%':'—'}</td>
+      <td>${hw?hw.submitted+'/'+hw.total:'—'}</td>
+      <td>${gp!==null?gp+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="rpt-page">
+    <div class="rpt-head">
+      <div>
+        <h1>تقرير عام للطالبات</h1>
+        <div class="rpt-meta">${students.length} طالبة</div>
+      </div>
+      <div class="rpt-date">تاريخ التقرير<br>${todayStr()}</div>
+    </div>
+
+    <div class="rpt-section">
+      ${rows ? `<table class="rpt-table">
+        <tr><th>الاسم</th><th>المجموعة</th><th>الحضور</th><th>المشاركة</th><th>الواجبات</th><th>الدرجات</th></tr>
+        ${rows}
+      </table>` : '<div class="rpt-empty">لا يوجد طالبات بعد</div>'}
+    </div>
+
+    <div class="rpt-footer">تقرير تم إنشاؤه تلقائيًا</div>
+  </div>`;
+}
+
+loadStudents();
+</script>
+</body>
+</html>
