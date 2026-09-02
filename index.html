@@ -162,6 +162,55 @@
   .btn-sm{padding:8px 13px; font-size:13px;}
   .btn:focus-visible{outline:2px solid var(--olive); outline-offset:2px;}
 
+  /* ===== Class groups ===== */
+  .class-group{margin-bottom:14px;}
+  .class-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:15px 18px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+  }
+  .class-head .cname{
+    font-weight:700;
+    font-size:15.5px;
+    color:var(--olive-dark);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .class-head .cname::before{
+    content:'';
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--olive);
+    display:inline-block;
+    flex-shrink:0;
+  }
+  .class-head .ccount{
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--clay-soft);
+    padding:3px 10px;
+    border-radius:20px;
+    margin-inline-end:auto;
+    margin-inline-start:10px;
+  }
+  .class-head .chevron{transition:transform .2s ease;}
+  .class-group.open .class-head .chevron{transform:rotate(180deg);}
+  .class-body{
+    display:none;
+    flex-direction:column;
+    gap:12px;
+    padding-top:12px;
+  }
+  .class-group.open .class-body{display:flex;}
+
   /* ===== Student cards ===== */
   #list{
     display:flex;
@@ -212,7 +261,7 @@
   .head-badges{
     display:flex;
     gap:6px;
-    flex-shrink:0;
+    flex-shrink:1;
     flex-wrap:wrap;
     justify-content:flex-end;
     max-width:180px;
@@ -250,6 +299,13 @@
     flex-shrink:0;
   }
   .student.open .chevron{transform:rotate(180deg);}
+
+  @media (max-width:480px){
+    .student-head{flex-wrap:wrap; row-gap:8px;}
+    .head-info{flex:1 1 160px; min-width:0;}
+    .head-info .name{white-space:normal; overflow:visible; text-overflow:clip;}
+    .head-badges{order:5; flex-basis:100%; max-width:100%; justify-content:flex-start; margin-inline-start:58px;}
+  }
 
   .student-body{
     display:none;
@@ -626,7 +682,6 @@
     <div class="search">
       <input type="text" id="searchInput" placeholder="ابحثي عن طالبة...">
     </div>
-    <button class="btn btn-ghost btn-sm" id="demoBtn">بيانات تجريبية</button>
     <button class="btn btn-ghost btn-sm" id="exportAllBtn">تصدير تقرير عام PDF</button>
     <button class="btn btn-primary" id="addBtn">
       <span>+ إضافة طالبة</span>
@@ -699,6 +754,7 @@ const AVATAR_COLORS = ['#c97b95','#9b7fb0','#c9a15a','#8a7ca8','#d19bb0','#b98a6
 
 let students = []; // {id, name, group, phone, attendance:[], participation:[], homework:[], grades:[], notes}
 let openId = null;
+let openGroups = new Set();
 let pdfTargetId = null; // null => full class export
 
 function uid(){ return 's_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
@@ -818,35 +874,39 @@ function render(){
     return;
   }
 
-  list.innerHTML = filtered.map(s => {
-    const isOpen = s.id === openId;
-    const ap = avgAttendance(s);
-    const gp = avgGrade(s);
-    const hw = homeworkStats(s);
+  // group by class
+  const groups = {};
+  filtered.forEach(s=>{
+    const g = (s.group && s.group.trim()) ? s.group.trim() : 'بدون فصل';
+    if(!groups[g]) groups[g] = [];
+    groups[g].push(s);
+  });
+
+  const searching = q.length > 0;
+
+  list.innerHTML = Object.keys(groups).map(gName => {
+    const arr = groups[gName];
+    const isGroupOpen = searching || openGroups.has(gName);
     return `
-    <div class="student ${isOpen?'open':''}" data-id="${s.id}">
-      <div class="student-head" data-toggle="${s.id}">
-        <div class="avatar" style="background:${colorFor(s.id)}">${initials(s.name)}</div>
-        <div class="head-info">
-          <div class="name">${escapeHtml(s.name)}</div>
-          <div class="meta">
-            ${s.group ? `<span>${escapeHtml(s.group)}</span>` : ''}
-            <span>${s.attendance.length} جلسة</span>
-          </div>
-        </div>
-        <div class="head-badges">
-          ${ap!==null ? `<span class="badge badge-attend ${attendBadgeClass(ap)}">${ap}% حضور</span>` : ''}
-          ${gp!==null ? `<span class="badge badge-grade">${gp}% درجات</span>` : ''}
-          ${hw ? `<span class="badge badge-hw">${hw.submitted}/${hw.total} واجبات</span>` : ''}
-        </div>
-        <button class="icon-btn" title="تصدير PDF" data-pdf="${s.id}">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 9V4a1 1 0 011-1h7l4 4v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 13h12v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 17h1M14 17h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </button>
+    <div class="class-group ${isGroupOpen?'open':''}" data-group="${escapeHtml(gName)}">
+      <div class="class-head" data-toggle-group="${escapeHtml(gName)}">
+        <span class="cname">${escapeHtml(gName)}</span>
+        <span class="ccount">${arr.length} طالبة</span>
         <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      ${isOpen ? renderBody(s) : ''}
+      <div class="class-body">
+        ${arr.map(s => studentCardHtml(s)).join('')}
+      </div>
     </div>`;
   }).join('');
+
+  list.querySelectorAll('[data-toggle-group]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const g = el.getAttribute('data-toggle-group');
+      if(openGroups.has(g)) openGroups.delete(g); else openGroups.add(g);
+      render();
+    });
+  });
 
   list.querySelectorAll('[data-toggle]').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -864,6 +924,35 @@ function render(){
   });
 
   if(openId) bindBodyEvents(openId);
+}
+
+function studentCardHtml(s){
+  const isOpen = s.id === openId;
+  const ap = avgAttendance(s);
+  const gp = avgGrade(s);
+  const hw = homeworkStats(s);
+  return `
+    <div class="student ${isOpen?'open':''}" data-id="${s.id}">
+      <div class="student-head" data-toggle="${s.id}">
+        <div class="avatar" style="background:${colorFor(s.id)}">${initials(s.name)}</div>
+        <div class="head-info">
+          <div class="name">${escapeHtml(s.name)}</div>
+          <div class="meta">
+            <span>${s.attendance.length} جلسة</span>
+          </div>
+        </div>
+        <div class="head-badges">
+          ${ap!==null ? `<span class="badge badge-attend ${attendBadgeClass(ap)}">${ap}% حضور</span>` : ''}
+          ${gp!==null ? `<span class="badge badge-grade">${gp}% درجات</span>` : ''}
+          ${hw ? `<span class="badge badge-hw">${hw.submitted}/${hw.total} واجبات</span>` : ''}
+        </div>
+        <button class="icon-btn" title="تصدير PDF" data-pdf="${s.id}">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 9V4a1 1 0 011-1h7l4 4v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 13h12v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 17h1M14 17h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      ${isOpen ? renderBody(s) : ''}
+    </div>`;
 }
 
 function escapeHtml(str){
@@ -1172,88 +1261,6 @@ document.getElementById('confirmAdd').addEventListener('click', async ()=>{
 });
 document.getElementById('inName').addEventListener('keydown', (e)=>{
   if(e.key==='Enter') document.getElementById('confirmAdd').click();
-});
-
-// ===== Demo data =====
-function dayOffset(n){
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0,10);
-}
-
-function generateDemoData(){
-  const demo = [
-    // الفصل الأول
-    { name:'سارة العتيبي', group:'الفصل الأول',
-      attendance:[[6,'present'],[4,'present'],[3,'late'],[1,'present']],
-      participation:[[6,'excellent'],[3,'good'],[1,'excellent']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:9, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:8, outof:10},{title:'واجب الوحدة الثالثة', submitted:false, score:null, outof:null}],
-      grades:[{title:'اختبار قصير 1', score:18, outof:20},{title:'اختبار منتصف الفصل', score:44, outof:50}],
-      notes:'طالبة متفاعلة وتشارك بانتظام، تحتاج فقط تنظيم وقت تسليم الواجبات.' },
-    { name:'ريم القحطاني', group:'الفصل الأول',
-      attendance:[[6,'present'],[4,'absent'],[3,'present'],[1,'present']],
-      participation:[[6,'good'],[3,'good']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:7, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:9, outof:10}],
-      grades:[{title:'اختبار قصير 1', score:15, outof:20},{title:'اختبار منتصف الفصل', score:38, outof:50}],
-      notes:'تحسّن ملحوظ في الحضور آخر أسبوعين.' },
-    { name:'نورة الدوسري', group:'الفصل الأول',
-      attendance:[[6,'present'],[4,'present'],[3,'present'],[1,'late']],
-      participation:[[6,'excellent'],[3,'excellent'],[1,'good']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:10, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:10, outof:10},{title:'واجب الوحدة الثالثة', submitted:true, score:9, outof:10}],
-      grades:[{title:'اختبار قصير 1', score:20, outof:20},{title:'اختبار منتصف الفصل', score:49, outof:50}],
-      notes:'متميزة جدًا، ممكن تكون قائدة مجموعة في المشاريع القادمة.' },
-    { name:'جود الحربي', group:'الفصل الأول',
-      attendance:[[6,'absent'],[4,'late'],[3,'present'],[1,'present']],
-      participation:[[3,'weak'],[1,'good']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:false, score:null, outof:null},{title:'واجب الوحدة الثانية', submitted:true, score:6, outof:10}],
-      grades:[{title:'اختبار قصير 1', score:11, outof:20}],
-      notes:'تحتاج متابعة إضافية، تواصلت مع ولي الأمر بخصوص الغياب المتكرر.' },
-    // الفصل الثاني
-    { name:'لمى الشهري', group:'الفصل الثاني',
-      attendance:[[5,'present'],[4,'present'],[2,'present'],[1,'present']],
-      participation:[[5,'excellent'],[2,'excellent']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:10, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:8, outof:10}],
-      grades:[{title:'اختبار قصير 1', score:19, outof:20},{title:'اختبار منتصف الفصل', score:46, outof:50}],
-      notes:'مواظبة ودقيقة في التسليم.' },
-    { name:'غلا المطيري', group:'الفصل الثاني',
-      attendance:[[5,'late'],[4,'present'],[2,'present'],[1,'absent']],
-      participation:[[5,'good'],[2,'weak']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:6, outof:10},{title:'واجب الوحدة الثانية', submitted:false, score:null, outof:null}],
-      grades:[{title:'اختبار قصير 1', score:13, outof:20}],
-      notes:'بحاجة تحفيز أكثر للمشاركة الصفية.' },
-    { name:'عبير الزهراني', group:'الفصل الثاني',
-      attendance:[[5,'present'],[4,'present'],[2,'late'],[1,'present']],
-      participation:[[5,'good'],[2,'excellent'],[1,'good']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:9, outof:10},{title:'واجب الوحدة الثانية', submitted:true, score:9, outof:10},{title:'واجب الوحدة الثالثة', submitted:true, score:10, outof:10}],
-      grades:[{title:'اختبار قصير 1', score:17, outof:20},{title:'اختبار منتصف الفصل', score:41, outof:50}],
-      notes:'مستوى ثابت وجيد طوال الفصل.' },
-    { name:'وعد الغامدي', group:'الفصل الثاني',
-      attendance:[[5,'present'],[4,'absent'],[2,'present'],[1,'present']],
-      participation:[[5,'excellent'],[1,'good']],
-      homework:[{title:'واجب الوحدة الأولى', submitted:true, score:8, outof:10}],
-      grades:[{title:'اختبار قصير 1', score:16, outof:20}],
-      notes:'' }
-  ];
-
-  return demo.map(d => ({
-    id: uid(),
-    name: d.name,
-    group: d.group,
-    phone: '',
-    attendance: d.attendance.map(([offset,status]) => ({date: dayOffset(offset), status})),
-    participation: d.participation.map(([offset,level]) => ({date: dayOffset(offset), level})),
-    homework: d.homework,
-    grades: d.grades,
-    notes: d.notes
-  }));
-}
-
-document.getElementById('demoBtn').addEventListener('click', async ()=>{
-  if(!confirm('راح تُضاف 8 طالبات وهميات (4 في الفصل الأول و4 في الفصل الثاني) فوق القائمة الحالية. متابعة؟')) return;
-  students = [...students, ...generateDemoData()];
-  await persist();
-  showToast('تمت إضافة البيانات التجريبية');
-  render();
 });
 
 // ===== PDF export =====
