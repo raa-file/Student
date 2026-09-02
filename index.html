@@ -877,7 +877,7 @@ function render(){
   // group by class
   const groups = {};
   filtered.forEach(s=>{
-    const g = (s.group && s.group.trim()) ? s.group.trim() : 'بدون فصل';
+    const g = (s.group && s.group.trim()) ? s.group.trim() : 'بدون مجموعة';
     if(!groups[g]) groups[g] = [];
     groups[g].push(s);
   });
